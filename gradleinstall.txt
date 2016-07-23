@@ -1,0 +1,2 @@
+buildship
+http://download.eclipse.org/releases/neon

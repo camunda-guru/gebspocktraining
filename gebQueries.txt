@@ -1,0 +1,642 @@
+/ match all 'div' elements on the page
+$("div")
+ 
+// match the first 'div' element on the page
+$("div", 0)
+ 
+// match all 'div' elements with a title attribute value of 'section'
+$("div", title: "section")
+$("div", id:"main")
+$("div",id:"mainLogonDiv")
+$("div",class:"showPasswordCheck signInCheckBoxText")
+ 
+// match the first 'div' element with a title attribute value of 'section'
+$("div", 0, title: "section")
+ 
+// match all 'div' elements who have the class 'main'
+$("div.main") 
+ 
+// match the first 'div' element with the class 'main'
+$("div.main", 0) 
+
+
+// The parent of the first paragraph
+$("p", 0).parent()
+ 
+// All tables with a cellspacing attribute value of 0 that are nested in a paragraph
+$("p").find("table", cellspacing: '0')
+
+
+$("iframe",id:"frame1").text()
+Browser.drive {
+    to SignupPage
+    assert $("h1").text() == "Signup Page"
+    assert page instanceof SignupPage
+}
+
+Browser.drive {
+    // Go to the Base URL
+    go()
+ 
+    // Go to a URL relative to Base URL
+    go "signup"
+ 
+    // Go to a URL with request params, i.e http://myapp.com/signup?param1=value1&param2=value2
+    go "signup", param1: "value1", param2: "value2"
+}
+class LoginPage extends Page {
+    static content = {
+        loginButton(to: AdminPage) { $("input", type: "submit", name: "login") }
+    }
+}
+ 
+class AdminPage extends Page {
+    static at = {
+        assert $("h1").text() == "Admin Page"
+    }
+}
+ 
+Browser.drive {
+    to LoginPage
+    loginButton.click()
+    at AdminPage
+}
+
+
+Consider the following html…
+
+
+<p attr1="a" attr2="b">p1</p>
+<p attr1="a" attr2="c">p2</p>
+We can use attribute matchers like so…
+
+1
+2
+$("p", attr1: "a").size() == 2
+$("p", attr2: "c").size() == 1
+Consider the following html…
+
+1
+2
+3
+4
+5
+6
+<div class="a">
+    <p class="b">geb</p>
+</div>
+<div class="b">
+    <input type="text"/>
+</div>
+We can select p.b by…
+1
+$("div").has("input", type: "text")
+1
+$("div").find(".b")
+We can select div.b by…
+
+1
+$("div").filter(".b")
+or…
+
+1
+$(".b").not("p")
+We can select the div containing the p with…
+
+1
+$("div").has("p")
+Or select the div containing the input with a type attribute of “text” like so…
+
+<div class="a">
+    <div class="b">
+        <p class="c"></p>
+        <p class="d"></p>
+        <p class="e"></p>
+    </div>
+    <div class="f"></div>
+</div>
+You can select content around p.d by…
+
+1
+2
+3
+4
+5
+6
+7
+$("p.d").previous() // 'p.c'
+$("p.e").prevAll() // 'p.c' & 'p.d'
+$("p.d").next() // 'p.e'
+$("p.c").nextAll() // 'p.d' & 'p.e'
+$("p.d").parent() // 'div.b'
+$("p.c").siblings() // 'p.d' & 'p.e'
+$("div.a").children() // 'div.b' & 'div.f'
+
+form>
+    <input type="text" name="geb" value="testing" />
+</form>
+The value can be read and written via property notation…
+
+1
+2
+3
+$("form").geb == "testing"
+$("form").geb = "goodness"
+$("form").geb == "goodness"
+These are literally shortcuts for…
+
+1
+2
+3
+$("form").find("input", name: "geb").value() == "testing"
+$("form").find("input", name: "geb").value("goodness")
+$("form").find("input", name: "geb").value() == "goodness"
+
+<select name="genres" multiple>
+    <option value="1">Alt folk</option>
+    <option value="2">Chiptunes</option>
+    <option value="3">Electroclash</option>
+    <option value="4">G-Funk</option>
+    <option value="5">Hair metal</option>
+</select>
+We can select options with…
+
+1
+2
+3
+4
+$("form").genres = ["2", "3"]                 // second and third options selected by their value attributes
+$("form").genres = [1, 4, 5]                  // first, fourth and fifth options selected by their value attributes
+$("form").genres = ["Alt folk", "Hair metal"] // first and last options selected by their text
+$("form").genres = []                         // all options un-selected
+
+<input type="checkbox" name="pet" value="dogs" />
+<input type="checkbox" name="pet" value="cats" />
+You can select dogs as your pet type, as follows:
+
+1
+$("checkbox", name: "pet").value("dogs")
+Calling value() on a checked checkbox will return the value of its value attribute, i.e:
+
+1
+2
+3
+<input type="checkbox" name="pet" value="dogs" checked="checked"/>
+ 
+assert $("checkbox", name: "pet").value() == "dogs"
+Calling value() on an unchecked checkbox will return false, i.e:
+
+1
+2
+3
+<input type="checkbox" name="pet" value="dogs"/>
+ 
+assert $("checkbox", name: "pet").value() == false
+In general you should use Groovy Truth when checking if a checkbox is checked:
+
+1
+2
+3
+if ($("checkbox", name: "pet").value()) {
+    //evaluated only if "pet" checkbox is checked
+
+
+
+class ExamplePage extends Page {
+    static content = {
+        heading { $("h1") }
+    }
+}
+ 
+class SpecialExamplePage extends ExamplePage {
+    static content = {
+        footer { $("div.footer") }
+    }
+}
+ 
+Browser.drive {
+    to SpecialExamplePage
+    assert heading.text() == "Special Example"
+    assert footer.text() == "This is the footer"
+}
+
+
+Consider the following html…
+
+
+
+1
+2
+3
+ 
+<p>a</p>
+<p>b</p>
+<p>c</p>
+ 
+
+We can use indexes to match content like so…
+
+
+
+1
+2
+3
+4
+ 
+$("p", 0).text() == "a"
+$("p", 2).text() == "c"
+$("p", 0..1)*.text() = ["a", "b"]
+$("p", 1..2)*.text() = ["b", "c"]
+ 
+Consider the following html…
+
+
+
+1
+2
+ 
+<p attr1="a" attr2="b">p1</p>
+<p attr1="a" attr2="c">p2</p>
+ 
+
+We can use attribute matchers like so…
+
+
+
+1
+2
+ 
+$("p", attr1: "a").size() == 2
+$("p", attr2: "c").size() == 1
+ 
+
+Attribute values are anded together…
+
+
+
+1
+ 
+$("p", attr1: "a", attr2: "b").size() == 1
+ 
+
+We can use text matchers like so…
+
+
+
+1
+ 
+$("p", text: "p1").size() == 1
+ 
+
+You can mix attribute and text matchers…
+
+
+
+1
+ 
+$("p", text: "p1", attr1: "a").size() == 1
+ 
+match the entire value of an attribute or the text you use a String value. It is also possible to use a Pattern to do regexp matching…
+
+
+
+1
+ 
+$("p", text: ~/p./).size() == 2
+ 
+
+Geb also ships with a bunch of shortcut pattern methods…
+
+
+
+1
+2
+ 
+$("p", text: startsWith("p")).size() == 2
+$("p", text: endsWith("2")).size() == 1
+ 
+Given the following page…
+
+
+
+1
+2
+3
+4
+5
+6
+7
+ 
+<html>
+    <script type="text/javascript">
+        var aVariable = 1;
+    </script>
+<body>
+</body>
+</html>
+ 
+
+We could access the javascript variable “aVariable” with…
+
+
+
+1
+2
+3
+ 
+Browser.drive {
+    assert js.aVariable == 1
+}
+ 
+
+Or if we wanted to map it to page content…
+
+
+
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+ 
+class ExamplePage extends Page {
+    static content = {
+        aVar { js.aVariable }
+    }
+}
+ 
+Browser.drive {
+    to ExamplePage
+    assert aVar == 1
+}
+ 
+
+We can even access nested variables…
+
+
+
+1
+ 
+assert js."document.title" == "Book of Geb"
+ 
+Given the following page…
+
+
+
+1
+2
+3
+4
+5
+6
+7
+8
+9
+ 
+<html>
+    <script type="text/javascript">
+        function addThem(a,b) {
+            return a + b;
+        }
+    </script>
+<body>
+</body>
+</html>
+ 
+
+We can call the addThem() function with…
+
+
+
+1
+2
+3
+ 
+Browser.drive {
+    assert js.addThem(1, 2) == 3
+}
+ 
+
+This also works from pages and modules.
+
+To call nested methods, we use the same syntax as properties…
+
+
+
+1
+2
+3
+ 
+Browser.drive {
+    js."document.write"("dynamic!")
+}
+ 
+1
+2
+3
+4
+ 
+waitFor {} // use default configuration
+waitFor(10) {} // wait for up to 10 seconds, using the default retry interval
+waitFor(10, 0.5) {} // wait for up to 10 seconds, waiting half a second in between retries
+waitFor("quick") {} // use the preset “quick” as the wait settings
+ 
+
+import geb.*
+ 
+class DynamicPage extends Page {
+    static content = {
+        theButton { $("input", value: "Make Request") }
+        theResultDiv(required: false) { $("div#result") }
+    }
+ 
+    def makeRequest() {
+        theButton.click()
+        waitFor { theResultDiv.present }
+    }
+}
+ 
+Browser.drive {
+    to DynamicPage
+    makeRequest()
+    assert theResultDiv.text() == "The Result"
+}
+ 
+
+
+Notice that the ‘theResultDiv’ is declared required: false. This is almost always necessary when dealing with dynamic content as it’s likely to not be present on the page when it is first accessed (see: section on required)
+
+Because the browser delegates method calls to the page object, the above could have been written as…
+
+
+
+1
+2
+3
+4
+5
+ 
+Browser.drive {
+    $("input", value: "Make Request")
+    waitFor { $("div#result").present }
+    assert $("div#result").text() == "The Result"
+}
+ 
+
+Recall that the return keyword is optional in Groovy, so in the example above the $("div#result").present statement acts as the return value for the closure and is used as the basis on whether the closure passed or not. This means that you must ensure that the last statement inside the closure returns a value that is true according to the Groovy Truth (if you’re unfamiliar with the Groovy Truth do read that page).
+
+
+Not using explicit return statements in closure expressions passed to waitFor() is actually preferred. See the section on implicit assertions for more information.
+
+The closures given to the waitFor method(s) do not need to be single statement.
+
+
+
+1
+2
+3
+4
+5
+ 
+waitFor {
+    def a = 1
+    def b = 2
+    a == b
+}
+ 
+
+That will work fine.
+
+If you wish to test multiple conditions as separate statement inside a waitFor closure, you can just put them in separate lines.
+
+
+
+1
+2
+3
+4
+ 
+waitFor {
+    1 == 1
+    2 == 2
+}
+ 
+
+
+<input type="button" name="showAlert" onclick="alert('Bang!');" />
+ 
+
+The withAlert() method is used like so…
+
+
+
+1
+ 
+assert withAlert { $("input", name: "showAlert").click() } == "Bang!"
+ 
+Consider the following page:
+
+
+
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+ 
+<html>
+<head>
+    <script type="text/javascript" src="/js/jquery-1.4.2.min.js"></script>
+    <script type="text/javascript">
+        $(function() {
+            $("#a").mouseover(function() {
+               $("b").show(); 
+            });
+        });
+    </script>
+</head>
+<body>
+    <div id="a"></div>
+    <div id="b" style="display:none;"><a href="http://www.gebish.org">Geb!</a></div>
+</body>
+</html>
+ 
+import geb.*
+ 
+class ExamplePage extends Page {
+    static content = {
+        divA { $("#a") }
+        divB { $("#b") }
+        gebLink { divB.find("a") }
+    }
+}
+ 
+Browser.drive {
+    to ExamplePage
+    // div b is not showing
+    divA.jquery.mouseover()
+    // div b is showing now
+    gebLink.click()
+}
+
+Browser.drive {
+    go "http://myapp.com/login"
+ 
+    // login
+    username = "me"
+    password = "secret"
+    login().click()
+ 
+    // now find the pdf download link
+    def downloadLink = $("a.pdf-download-link")
+ 
+    // now get the pdf bytes
+    def bytes = downloadBytes(downloadLink.@href)
+}
+Browser.drive {
+    go "http://myapp.com/somepage"
+    downloadText { HttpURLConnection connection ->
+        connection.setRequestProperty("Accept-Encoding", "gibberish")
+    }
+
+Browser.drive {
+    go "http://google.com/ncr"
+ 
+    // make sure we actually got to the page
+    assert title == "Google"
+ 
+    // enter wikipedia into the search field
+    $("input", name: "q").value("wikipedia")
+ 
+    // wait for the change to results page to happen
+    // (google updates the page dynamically without a new request)
+    waitFor { title.endsWith("Google Search") }
+ 
+    // is the first link to wikipedia?
+    def firstLink = $("li.g", 0).find("a.l")
+    assert firstLink.text() == "Wikipedia"
+ 
+    // click the link 
+    firstLink.click()
+ 
+    // wait for Google's javascript to redirect to Wikipedia
+    waitFor { title == "Wikipedia" }
+}
+
+
